@@ -1,26 +1,195 @@
 @import "tailwindcss";
 
+/*
+ * Foundations — from the Figma "Foundations" canvas (node 263:33).
+ * Tier 1 holds raw primitives. Tier 2 holds the semantic tokens the UI uses.
+ * Only semantic tokens should be referenced by components.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Tier 1 — Primitives */
+  --neutral-950: #0d0d10;
+  --neutral-900: #1a1a1e;
+  --neutral-850: #232328;
+  --neutral-800: #2b2b30;
+  --neutral-600: #66666e;
+  --neutral-400: #a6a6ae;
+  --neutral-050: #f2f2f3;
+  --blue-900: #1e3a8a;
+  --blue-600: #3b5bdb;
+  --blue-500: #4a6fd1;
+
+  /* Tier 2 — Semantic */
+  --background: var(--neutral-950); /* Page base layer. Not for cards. */
+  --surface: var(--neutral-900); /* Cards, chat response area, inputs. */
+  --surface-hover: var(--neutral-850); /* Hover for cards and list rows. */
+  --border: var(--neutral-800); /* Dividers and outlines. Not for text. */
+  --input: var(--neutral-600); /* Form field boundary. */
+  --ring: var(--neutral-050); /* Keyboard focus ring, 2px, never removed. */
+  --foreground: var(--neutral-050); /* Default text color. */
+  --muted-foreground: var(--neutral-400); /* Captions, placeholders, metadata. */
+  --accent: var(--blue-600); /* Primary actions. Meets 3:1 on background. */
+  --accent-hover: var(--blue-500); /* Hover and pressed for accent. */
+  --accent-deep: var(--blue-900); /* Decorative only. Fails 3:1 UI contrast. */
+  --accent-foreground: var(--neutral-050); /* Text and icons on accent. */
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-foreground: var(--accent-foreground);
+
+  /*
+   * Decorative page glow. It is drawn on a layer twice the size of the screen, and that layer moves
+   * with transform, so the browser never repaints the gradient. Accent-hover at the core,
+   * accent-deep midway, background at the edge.
+   */
+  --background-image-brand-gradient: radial-gradient(
+    ellipse 40% 27.5% at 65% 30%,
+    var(--accent-hover) 0%,
+    var(--accent-deep) 50%,
+    var(--background) 100%
+  );
+
+  --animate-glow: glow-move 18s ease-in-out infinite;
+
+  /* The orb's gradient: a light blue core, the brand blue, and a deep blue edge. The whole circle stays blue. */
+  --background-image-orb: radial-gradient(
+    circle closest-side,
+    var(--accent-hover) 0%,
+    var(--accent) 25%,
+    var(--accent-deep) 50%,
+    var(--accent-deep) 100%
+  );
+
+  --animate-orb: orb-move 8s ease-in-out infinite;
+  --animate-orb-fast: orb-move 2.5s ease-in-out infinite;
+  --animate-orb-pulse: orb-pulse 0.6s ease-in-out infinite;
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/*
+ * Type roles — 7 styles, one job each. Use the role, not ad hoc sizes.
+ * Font size, line height and weight are set together per role.
+ */
+@theme {
+  --text-title: 32px;
+  --text-title--line-height: 38px;
+  --text-title--font-weight: 700;
+
+  --text-heading: 18px;
+  --text-heading--line-height: 25px;
+  --text-heading--font-weight: 500;
+
+  --text-subtitle: 18px;
+  --text-subtitle--line-height: 25px;
+  --text-subtitle--font-weight: 400;
+
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-body--font-weight: 400;
+
+  --text-caption: 13px;
+  --text-caption--line-height: 19px;
+  --text-caption--font-weight: 400;
+
+  --text-label: 12px;
+  --text-label--line-height: 16px;
+  --text-label--font-weight: 500;
+
+  --text-mono: 13px;
+  --text-mono--line-height: 17px;
+  --text-mono--font-weight: 400;
+}
+
+/*
+ * Spacing — 4px base. Pick from this scale only:
+ * 4, 8, 12, 16, 20, 24, 32, 44, 48, 64 (1, 2, 3, 4, 5, 6, 8, 11, 12, 16 steps).
+ */
+@theme {
+  --spacing: 4px;
+}
+
+/* Radius — two values only. */
+@theme {
+  --radius-card: 12px; /* Any rounded rectangle. */
+  --radius-pill: 999px; /* Buttons, chips, send icon. */
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* Moves the glow layer across the screen. Only transform changes, so the browser does not repaint. */
+@keyframes glow-move {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  20% {
+    transform: translate3d(-22.5%, 10%, 0);
+  }
+  40% {
+    transform: translate3d(-34%, 1%, 0);
+  }
+  60% {
+    transform: translate3d(-5%, 20%, 0);
+  }
+  80% {
+    transform: translate3d(6%, 7.5%, 0);
+  }
+}
+
+/* Moves the orb's gradient core inside the orb. Only transform changes, so the browser does not repaint. */
+@keyframes orb-move {
+  0%,
+  100% {
+    transform: translate3d(-15%, -15%, 0);
+  }
+  33% {
+    transform: translate3d(15%, -10%, 0);
+  }
+  66% {
+    transform: translate3d(0, 15%, 0);
+  }
+}
+
+@keyframes orb-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+/* Entrance for the profile row and the orb. Opacity and transform only, no blur. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@theme inline {
+  --animate-rise: rise 0.6s ease-out both;
 }
